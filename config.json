@@ -1,0 +1,49 @@
+{
+  "proxy": {
+    "http": "http://127.0.0.1:15236",
+    "https": "http://127.0.0.1:15236",
+    "enabled": true,
+    "comment": "Set enabled:false to disable proxy globally"
+  },
+  "defuddle": {
+    "useAsync": true,
+    "markdown": true,
+    "debug": true,
+    "removeImages": false,
+    "removeSmallImages": true,
+    "removeHiddenElements": true,
+    "removeLowScoring": true,
+    "standardize": true,
+    "comment": "See https://defuddle.md/docs for all options"
+  },
+  "output": {
+    "defaultPath": "/Users/duu/Documents/Du/🦞OpenClaw研究室",
+    "format": "markdown",
+    "saveJson": true,
+    "autoOpen": false,
+    "filenameTemplate": "{{title}}_{{timestamp}}",
+    "comment": "Available variables: {{title}}, {{date}}, {{timestamp}}"
+  },
+  "http": {
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+    "timeout": 30000,
+    "maxRedirects": 5
+  },
+  "feishu": {
+    "enabled": false,
+    "chunkSize": 15000,
+    "folder_token": null,
+    "comment": "Set enabled:true to auto-save to Feishu. Use --feishu to override. Reduced to 15K for API safety."
+  },
+  "translation": {
+    "enabled": false,
+    "autoDetect": true,
+    "sourceLanguages": ["en", "eng"],
+    "targetLanguage": "zh-CN",
+    "apiProvider": "claude",
+    "model": "claude-sonnet-4",
+    "apiKey": null,
+    "maxChunkSize": 3000,
+    "comment": "Auto-translate English content to Chinese. Set enabled:true or use --translate flag."
+  }
+}
