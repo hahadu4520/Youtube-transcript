@@ -11,7 +11,7 @@ node extract.mjs "https://youtube.com/watch?v=rO3dIBMXD2g" --proxy --feishu
 ### 2. 脚本输出
 
 ```
-🌐 代理已启用: http://127.0.0.1:15236
+🌐 代理已启用: http://127.0.0.1:7890
 
 ⏳ 开始提取: https://youtube.com/watch?v=rO3dIBMXD2g
 📥 获取HTML...
@@ -26,8 +26,8 @@ node extract.mjs "https://youtube.com/watch?v=rO3dIBMXD2g" --proxy --feishu
 🔧 提取器: m
 ✅ 内容已提取: 57217 chars
 
-💾 已保存: /Users/duu/Documents/Du/🦞OpenClaw研究室/Blueprint_to_Build_2026-03-14.md
-📦 JSON: /Users/duu/Documents/Du/🦞OpenClaw研究室/Blueprint_to_Build_2026-03-14.json
+💾 已保存: ~/Documents/Defuddle/Blueprint_to_Build_2026-03-14.md
+📦 JSON: ~/Documents/Defuddle/Blueprint_to_Build_2026-03-14.json
 
 📄 准备保存到飞书...
   ✓ 已分段: 3个段落 (每段≤25000字符)
@@ -47,7 +47,7 @@ node extract.mjs "https://youtube.com/watch?v=rO3dIBMXD2g" --proxy --feishu
     "wordCount": 10888,
     "author": "Greg Isenberg",
     "published": "2025-12-08T14:10:00-08:00",
-    "localPath": "/Users/duu/Documents/Du/🦞OpenClaw研究室/Blueprint_to_Build_2026-03-14.md"
+    "localPath": "~/Documents/Defuddle/Blueprint_to_Build_2026-03-14.md"
   }
 }
 === END_AGENT_TASK ===
@@ -102,7 +102,7 @@ feishu_doc({
 - ✅ 结构化章节
 - ✅ 元数据（作者/发布时间/本地路径）
 
-**本地备份**：`/Users/duu/Documents/Du/🦞OpenClaw研究室/Blueprint_to_Build_2026-03-14.md`
+**本地备份**：`~/Documents/Defuddle/Blueprint_to_Build_2026-03-14.md`
 
 ---
 

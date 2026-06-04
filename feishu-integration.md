@@ -257,7 +257,7 @@ extract.mjs 提取内容
 
 ## 完整内容
 
-📂 **本地文件**: `/Users/duu/Documents/Du/🦞OpenClaw研究室/Blueprint_to_Build_2026-03-14.md`
+📂 **本地文件**: `~/Documents/Defuddle/Blueprint_to_Build_2026-03-14.md`
 
 📺 **原视频**: https://youtube.com/watch?v=rO3dIBMXD2g
 

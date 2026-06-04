@@ -1,14 +1,14 @@
 {
   "proxy": {
-    "http": "http://127.0.0.1:15236",
-    "https": "http://127.0.0.1:15236",
-    "enabled": true,
-    "comment": "Set enabled:false to disable proxy globally"
+    "http": "http://127.0.0.1:7890",
+    "https": "http://127.0.0.1:7890",
+    "enabled": false,
+    "comment": "Set enabled:true to enable proxy globally, or pass --proxy per run"
   },
   "defuddle": {
     "useAsync": true,
     "markdown": true,
-    "debug": true,
+    "debug": false,
     "removeImages": false,
     "removeSmallImages": true,
     "removeHiddenElements": true,
@@ -17,7 +17,7 @@
     "comment": "See https://defuddle.md/docs for all options"
   },
   "output": {
-    "defaultPath": "/Users/duu/Documents/Du/🦞OpenClaw研究室",
+    "defaultPath": "~/Documents/Defuddle",
     "format": "markdown",
     "saveJson": true,
     "autoOpen": false,

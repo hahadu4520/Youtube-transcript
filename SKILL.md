@@ -110,7 +110,7 @@ nano ~/.openclaw/skills/defuddle/config.json
 | `--no-markdown` | 禁用Markdown转换 | false |
 | `--translate` | 翻译英文到中文 | false |
 | `--open` | 自动打开结果 | false |
-| `--debug` | 启用debug模式 | true |
+| `--debug` | 启用debug模式 | false |
 
 ## 🌐 中英双语翻译
 
@@ -175,14 +175,14 @@ nano ~/.openclaw/skills/defuddle/config.json
 
 **方式1: 环境变量（推荐）**
 ```bash
-export ANTHROPIC_API_KEY="sk-ant-xxx..."
+export ANTHROPIC_API_KEY="<your-anthropic-api-key>"
 ```
 
 **方式2: config.json**
 ```json
 {
   "translation": {
-    "apiKey": "sk-ant-xxx..."
+    "apiKey": "<your-anthropic-api-key>"
   }
 }
 ```
@@ -453,7 +453,7 @@ async function extractWithDefuddle(url) {
 ```json
 {
   "output": {
-    "defaultPath": "~/Documents/Du/🦞OpenClaw研究室",
+    "defaultPath": "~/Documents/Defuddle",
     "template": "{{title}}_{{date}}.md",  // 支持变量
     "autoOpen": false,
     "saveJson": true

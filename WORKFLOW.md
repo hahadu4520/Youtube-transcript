@@ -21,13 +21,13 @@ const response = await fetch(url);  // ❌ ConnectTimeoutError
 
 #### 尝试2: 环境变量代理（失败）
 ```javascript
-process.env.HTTPS_PROXY = 'http://127.0.0.1:15236';  // ❌ 无效
+process.env.HTTPS_PROXY = 'http://127.0.0.1:7890';  // ❌ 无效
 ```
 
 #### 尝试3: ProxyAgent + setGlobalDispatcher（成功！）
 ```javascript
 import { ProxyAgent, setGlobalDispatcher } from 'undici';
-const proxyAgent = new ProxyAgent('http://127.0.0.1:15236');
+const proxyAgent = new ProxyAgent('http://127.0.0.1:7890');
 setGlobalDispatcher(proxyAgent);  // ✅ 成功
 ```
 
@@ -137,7 +137,7 @@ Options:
    ```bash
    node extract.mjs "https://youtube.com/..." \
      ${proxyEnabled ? '--proxy' : ''} \
-     --output ~/Documents/Du/🦞OpenClaw研究室/result.md
+     --output ~/Documents/Defuddle/result.md
    ```
 
 5. **执行 + 监控**
@@ -150,7 +150,7 @@ Options:
    ✅ 已提取YouTube视频transcript
    - 标题: Blueprint to Build a $1M SaaS...
    - 字数: 10,888词
-   - 文件: ~/Documents/Du/🦞OpenClaw研究室/result.md
+   - 文件: ~/Documents/Defuddle/result.md
    ```
 
 ---

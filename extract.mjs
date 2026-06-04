@@ -2,14 +2,12 @@
 
 import { parseHTML } from 'linkedom';
 import { Defuddle } from 'defuddle/node';
-import { readFileSync, writeFileSync } from 'fs';
+import { mkdirSync, readFileSync, writeFileSync } from 'fs';
 import { ProxyAgent, setGlobalDispatcher, Agent } from 'undici';
-import { exec } from 'child_process';
-import { promisify } from 'util';
+import { execFile } from 'child_process';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 
-const execAsync = promisify(exec);
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 // 加载配置
@@ -67,7 +65,7 @@ if (feishuFolderIndex !== -1 && args[feishuFolderIndex + 1]) {
 
 // 配置代理（仅用于Defuddle）
 let proxyAgent = null;
-if (options.proxy && config.proxy.enabled) {
+if (options.proxy) {
   const proxyUrl = config.proxy.http;
   proxyAgent = new ProxyAgent(proxyUrl);
   setGlobalDispatcher(proxyAgent);
@@ -305,10 +303,22 @@ async function extract() {
   try {
     // 1. 获取HTML
     console.log('📥 获取HTML...');
-    const { stdout: html } = await execAsync(
-      `curl -sL -A "${config.http.userAgent}" "${url}"`,
-      { maxBuffer: 10 * 1024 * 1024 }
-    );
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), config.http.timeout || 30000);
+    const response = await fetch(url, {
+      headers: {
+        'user-agent': config.http.userAgent,
+      },
+      redirect: 'follow',
+      signal: controller.signal,
+    });
+    clearTimeout(timeout);
+
+    if (!response.ok) {
+      throw new Error(`HTTP请求失败: ${response.status} ${response.statusText}`);
+    }
+
+    const html = await response.text();
 
     if (!html || html.length < 100) {
       throw new Error('HTML内容为空或过短');
@@ -316,7 +326,16 @@ async function extract() {
 
     // 2. Defuddle解析
     console.log('🔍 Defuddle解析...');
-    const { document } = parseHTML(html);
+    const { document, window } = parseHTML(html);
+    if (!window.getComputedStyle) {
+      window.getComputedStyle = () => ({
+        display: 'block',
+        visibility: 'visible',
+        opacity: '1',
+        getPropertyValue: () => '',
+      });
+    }
+
     const result = await Defuddle(document, url, {
       markdown: options.markdown,
       debug: options.debug,
@@ -359,6 +378,7 @@ async function extract() {
 
     // 7. 保存文件
     const outputPath = options.output || generateOutputPath(result);
+    mkdirSync(dirname(outputPath), { recursive: true });
     writeFileSync(outputPath, markdown, 'utf-8');
     console.log(`\n💾 已保存: ${outputPath}`);
 
@@ -379,7 +399,7 @@ async function extract() {
 
     // 9. 自动打开
     if (options.autoOpen) {
-      exec(`open "${outputPath}"`);
+      execFile('open', [outputPath]);
       console.log('📂 已打开文件');
     }
 

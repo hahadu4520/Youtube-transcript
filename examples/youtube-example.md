@@ -8,7 +8,7 @@ node extract.mjs "https://youtube.com/watch?v=rO3dIBMXD2g" --proxy
 ## 输出预览
 
 ```
-🌐 代理已启用: http://127.0.0.1:15236
+🌐 代理已启用: http://127.0.0.1:7890
 
 ⏳ 开始提取: https://youtube.com/watch?v=rO3dIBMXD2g
 📥 获取HTML...
@@ -23,8 +23,8 @@ node extract.mjs "https://youtube.com/watch?v=rO3dIBMXD2g" --proxy
 🔧 提取器: m
 ✅ 内容已提取: 57217 chars
 
-💾 已保存: /Users/duu/Documents/Du/🦞OpenClaw研究室/Blueprint_to_Build_a_1M_SaaS_From_Scratch_2026-03-14.md
-📦 JSON: /Users/duu/Documents/Du/🦞OpenClaw研究室/Blueprint_to_Build_a_1M_SaaS_From_Scratch_2026-03-14.json
+💾 已保存: ~/Documents/Defuddle/Blueprint_to_Build_a_1M_SaaS_From_Scratch_2026-03-14.md
+📦 JSON: ~/Documents/Defuddle/Blueprint_to_Build_a_1M_SaaS_From_Scratch_2026-03-14.json
 ```
 
 ## 提取内容特点
