@@ -1,6 +1,6 @@
-# Defuddle Skill
+# YouTube Transcript Skill
 
-高级网页内容提取工具，支持 YouTube transcript、代理、Debug 模式、Markdown/JSON 输出，并可在 OpenClaw、Codex、Claude Code 中复用。
+YouTube 视频转录提取工具，支持带时间戳的 transcript、Markdown/JSON 归档、代理、英文转中文翻译，以及 Feishu/Lark 分块交接。底层由 Defuddle 驱动，也保留普通网页 clean content 提取能力。
 
 ## 安装
 
@@ -16,21 +16,18 @@ npm install
 ### Codex
 
 ```bash
-ln -s ~/.openclaw/skills/defuddle ~/.codex/skills/defuddle
+ln -s ~/.openclaw/skills/defuddle ~/.codex/skills/youtube-transcript
 ```
 
 ### Claude Code
 
 ```bash
-ln -s ~/.openclaw/skills/defuddle ~/.claude/skills/defuddle
+ln -s ~/.openclaw/skills/defuddle ~/.claude/skills/youtube-transcript
 ```
 
 ## 快速开始
 
 ```bash
-# 提取网页
-node extract.mjs "https://example.com/article"
-
 # 提取 YouTube 视频 transcript
 node extract.mjs "https://youtube.com/watch?v=..."
 
@@ -45,11 +42,14 @@ node extract.mjs "https://youtube.com/watch?v=..." --json-only
 
 # 英文内容翻译成中文
 node extract.mjs "https://youtube.com/watch?v=..." --translate
+
+# 次要能力：提取普通网页正文
+node extract.mjs "https://example.com/article"
 ```
 
-## 与web_fetch的区别
+## 与 web_fetch 的区别
 
-| 功能 | web_fetch | defuddle |
+| 功能 | web_fetch | YouTube Transcript |
 |------|-----------|----------|
 | YouTube transcript | ❌ | ✅ |
 | 代理支持 | 部分 | ✅ 完整 |
@@ -69,7 +69,7 @@ node extract.mjs "https://youtube.com/watch?v=..." --translate
 
 ## 文档
 
-- `SKILL.md`: Agent 使用入口，包含 Codex / Claude Code / OpenClaw 兼容说明
+- `SKILL.md`: Agent 使用入口，包含 YouTube Transcript 触发说明和 Codex / Claude Code / OpenClaw 兼容说明
 - `WORKFLOW.md`: 原始实现流程和技术细节
 - `feishu-integration.md`: Feishu/Lark 分块保存方案
 - `TRANSLATION_GUIDE.md`: 翻译配置和使用方式

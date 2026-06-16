@@ -1,13 +1,15 @@
 ---
-name: defuddle
-description: Extract clean web content and YouTube transcripts with Defuddle. Use when the user asks to fetch, extract, transcribe, archive, or translate a webpage, article, or YouTube video, especially when YouTube transcript timestamps, proxy support, Markdown/JSON output, or Feishu/Lark handoff is needed.
+name: youtube-transcript
+description: Extract, archive, translate, and hand off YouTube transcripts with timestamps. Use when the user asks to transcribe a YouTube video, get a YouTube transcript, save a video transcript as Markdown/JSON, translate an English YouTube transcript to Chinese, or prepare transcript chunks for Feishu/Lark. The underlying extractor is Defuddle and it can also extract clean article content when needed.
 metadata:
-  short-description: Extract webpages and YouTube transcripts
+  short-description: Extract YouTube transcripts
 ---
 
-# Defuddle
+# YouTube Transcript
 
-Use this skill to extract clean Markdown/JSON from webpages and YouTube videos. It is built around a local Node.js CLI and works from Codex, Claude Code, and OpenClaw when this folder is installed in the agent's skill directory.
+Use this skill to extract YouTube transcripts with timestamps and save them as Markdown/JSON. It can also translate English transcripts to Chinese and prepare long transcript content for Feishu/Lark upload.
+
+The implementation is powered by Defuddle, so it can still extract clean article/page content when that is useful, but the primary product-facing name and workflow is **YouTube Transcript**.
 
 ## Location
 
@@ -27,16 +29,16 @@ If the skill is symlinked into another agent's skill directory, still prefer the
 
 ## When To Use
 
-Use Defuddle for:
+Use YouTube Transcript for:
 
 - YouTube transcript extraction with timestamps.
-- Clean article/page extraction without navigation, sidebars, and ads.
-- Markdown or JSON archives of web content.
-- Proxy-enabled extraction when direct fetch fails.
+- Markdown or JSON archives of video transcripts.
 - Optional English-to-Chinese translation of extracted content.
 - Preparing long extracted content for Feishu/Lark upload.
+- Proxy-enabled extraction when direct YouTube fetch fails.
+- Clean article/page extraction without navigation, sidebars, and ads, as a secondary capability.
 
-Do not use this skill when the user only needs a brief web lookup or a current fact; use normal browsing/search in those cases.
+Do not use this skill when the user only needs a brief web lookup, current fact, or summary without transcript extraction; use normal browsing/search in those cases.
 
 ## Quick Workflow
 
@@ -48,34 +50,34 @@ Do not use this skill when the user only needs a brief web lookup or a current f
 
 ## Common Commands
 
-Extract a webpage:
-
-```bash
-node /Users/duu/.openclaw/skills/defuddle/extract.mjs "https://example.com/article" --output /absolute/path/result.md
-```
-
 Extract a YouTube transcript:
 
 ```bash
 node /Users/duu/.openclaw/skills/defuddle/extract.mjs "https://youtube.com/watch?v=..." --output /absolute/path/transcript.md
 ```
 
-Use proxy when direct YouTube/page fetch fails or the user asks for proxy:
+Use proxy when direct YouTube fetch fails or the user asks for proxy:
 
 ```bash
 node /Users/duu/.openclaw/skills/defuddle/extract.mjs "https://youtube.com/watch?v=..." --proxy --output /absolute/path/transcript.md
 ```
 
-Output JSON only:
-
-```bash
-node /Users/duu/.openclaw/skills/defuddle/extract.mjs "https://example.com/article" --json-only
-```
-
-Extract and translate English content to Chinese:
+Extract and translate an English YouTube transcript to Chinese:
 
 ```bash
 node /Users/duu/.openclaw/skills/defuddle/extract.mjs "https://youtube.com/watch?v=..." --translate --output /absolute/path/bilingual.md
+```
+
+Output JSON only:
+
+```bash
+node /Users/duu/.openclaw/skills/defuddle/extract.mjs "https://youtube.com/watch?v=..." --json-only
+```
+
+Secondary capability: extract a clean webpage/article:
+
+```bash
+node /Users/duu/.openclaw/skills/defuddle/extract.mjs "https://example.com/article" --output /absolute/path/article.md
 ```
 
 Translation requires `ANTHROPIC_API_KEY` or `translation.apiKey` in `config.json`.
@@ -100,8 +102,10 @@ Translation requires `ANTHROPIC_API_KEY` or `translation.apiKey` in `config.json
 This skill is Codex-compatible when available at:
 
 ```bash
-/Users/duu/.codex/skills/defuddle
+/Users/duu/.codex/skills/youtube-transcript
 ```
+
+The legacy alias `/Users/duu/.codex/skills/defuddle` may also exist and can keep working.
 
 For normal extraction, run the CLI directly and save outputs in the current workspace or `/Users/duu/Documents/Defuddle`.
 
@@ -119,8 +123,10 @@ Then use the available Lark/Feishu document tools in the current environment to 
 This skill is Claude Code-compatible when available at:
 
 ```bash
-/Users/duu/.claude/skills/defuddle
+/Users/duu/.claude/skills/youtube-transcript
 ```
+
+The legacy alias `/Users/duu/.claude/skills/defuddle` may also exist and can keep working.
 
 Use the same CLI commands. Claude Code should treat `--feishu` as a handoff payload unless a matching Feishu MCP/tool is configured.
 

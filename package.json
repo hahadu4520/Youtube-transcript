@@ -1,7 +1,7 @@
 {
-  "name": "openclaw-skill-defuddle",
+  "name": "youtube-transcript-skill",
   "version": "1.0.0",
-  "description": "Extract clean content from web pages with Defuddle",
+  "description": "Extract timestamped YouTube transcripts with Markdown/JSON output, proxy support, translation, and Feishu/Lark handoff",
   "type": "module",
   "main": "extract.mjs",
   "scripts": {
@@ -9,10 +9,11 @@
     "test": "node extract.mjs https://example.com --debug"
   },
   "keywords": [
-    "defuddle",
-    "web-scraping",
-    "content-extraction",
     "youtube-transcript",
+    "youtube",
+    "transcript",
+    "captions",
+    "defuddle",
     "markdown"
   ],
   "author": "OpenClaw Community",
