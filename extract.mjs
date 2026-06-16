@@ -23,6 +23,7 @@ if (!url || url.startsWith('--')) {
   console.error('');
   console.error('Options:');
   console.error('  --proxy           Enable proxy');
+  console.error('  --proxy-url <url> Proxy URL for this run');
   console.error('  --no-async        Disable async extractors');
   console.error('  --output <path>   Output file path');
   console.error('  --feishu          Save to Feishu document');
@@ -36,8 +37,31 @@ if (!url || url.startsWith('--')) {
 }
 
 // 解析参数
+function readArgValue(flag) {
+  const index = args.indexOf(flag);
+  return index !== -1 && args[index + 1] ? args[index + 1] : null;
+}
+
+function getEnvProxyUrl() {
+  return process.env.HTTPS_PROXY ||
+    process.env.https_proxy ||
+    process.env.HTTP_PROXY ||
+    process.env.http_proxy ||
+    null;
+}
+
+function getProxyUrl() {
+  return readArgValue('--proxy-url') ||
+    getEnvProxyUrl() ||
+    config.proxy.https ||
+    config.proxy.http ||
+    null;
+}
+
+const detectedProxyUrl = getProxyUrl();
+
 const options = {
-  proxy: args.includes('--proxy') || config.proxy.enabled,
+  proxy: args.includes('--proxy') || config.proxy.enabled || (config.proxy.autoDetectEnv !== false && Boolean(getEnvProxyUrl())),
   useAsync: !args.includes('--no-async') && config.defuddle.useAsync,
   markdown: !args.includes('--no-markdown') && config.defuddle.markdown,
   debug: args.includes('--debug') || config.defuddle.debug,
@@ -47,18 +71,19 @@ const options = {
   translate: args.includes('--translate') || config.translation.enabled,
   feishuFolder: null,
   output: null,
+  proxyUrl: detectedProxyUrl,
 };
 
 // 解析输出路径
-const outputIndex = args.indexOf('--output');
-if (outputIndex !== -1 && args[outputIndex + 1]) {
-  options.output = args[outputIndex + 1];
+const outputValue = readArgValue('--output');
+if (outputValue) {
+  options.output = outputValue;
 }
 
 // 解析飞书文件夹
-const feishuFolderIndex = args.indexOf('--feishu-folder');
-if (feishuFolderIndex !== -1 && args[feishuFolderIndex + 1]) {
-  options.feishuFolder = args[feishuFolderIndex + 1];
+const feishuFolderValue = readArgValue('--feishu-folder');
+if (feishuFolderValue) {
+  options.feishuFolder = feishuFolderValue;
 } else {
   options.feishuFolder = config.feishu.folder_token;
 }
@@ -66,7 +91,15 @@ if (feishuFolderIndex !== -1 && args[feishuFolderIndex + 1]) {
 // 配置代理（仅用于Defuddle）
 let proxyAgent = null;
 if (options.proxy) {
-  const proxyUrl = config.proxy.http;
+  const proxyUrl = options.proxyUrl;
+  if (!proxyUrl) {
+    console.error('❌ 代理已启用，但没有找到代理地址。请设置 HTTP_PROXY/HTTPS_PROXY，或使用 --proxy-url <url>。');
+    process.exit(1);
+  }
+  if (/^socks/i.test(proxyUrl)) {
+    console.error(`❌ 当前代理地址是 ${proxyUrl}，但此脚本的 undici ProxyAgent 需要 HTTP/HTTPS 代理。请改用 HTTP 代理，例如 http://127.0.0.1:7890。`);
+    process.exit(1);
+  }
   proxyAgent = new ProxyAgent(proxyUrl);
   setGlobalDispatcher(proxyAgent);
   console.log(`🌐 代理已启用: ${proxyUrl}`);
@@ -81,131 +114,40 @@ function clearProxy() {
   }
 }
 
-// ============ 翻译工具函数 ============
+// ============ 翻译交接工具函数 ============
 
-async function translateToChineseWithClaude(text) {
-  try {
-    // 使用 OpenClaw 的 Claude API
-    // 这里假设环境变量中有 ANTHROPIC_API_KEY
-    const apiKey = config.translation.apiKey || process.env.ANTHROPIC_API_KEY;
-    
-    if (!apiKey) {
-      console.warn('⚠️  未配置Claude API Key，跳过翻译');
-      return null;
-    }
-
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01'
-      },
-      body: JSON.stringify({
-        model: config.translation.model || 'claude-sonnet-4',
-        max_tokens: 4096,
-        messages: [{
-          role: 'user',
-          content: `请将以下英文内容翻译成中文。保持原文的格式和结构，包括换行、加粗、链接等Markdown格式。只输出翻译结果，不要添加任何解释或评论。
-
-${text}`
-        }]
-      })
-    });
-
-    if (!response.ok) {
-      throw new Error(`Claude API错误: ${response.status} ${response.statusText}`);
-    }
-
-    const data = await response.json();
-    return data.content[0].text;
-    
-  } catch (error) {
-    console.error('翻译失败:', error.message);
-    return null;
-  }
+function shouldTranslateWithAgent(language) {
+  return config.translation.autoDetect &&
+    config.translation.sourceLanguages.includes(language);
 }
 
-async function translateContent(content, language, enableTranslation = true) {
-  // 检查是否需要翻译
-  if (!enableTranslation) return content;
-  
-  const shouldTranslate = config.translation.autoDetect && 
-    config.translation.sourceLanguages.includes(language);
-  
-  if (!shouldTranslate) {
-    console.log(`ℹ️  语言为 ${language}，跳过翻译`);
-    return content;
-  }
-
-  console.log('\n🌐 开始翻译到中文...');
-  
-  // 分段翻译（按段落）
-  const paragraphs = content.split(/\n\n+/);
-  const maxChunkSize = config.translation.maxChunkSize || 3000;
-  let translatedContent = '';
-  let processedCount = 0;
-
-  for (let i = 0; i < paragraphs.length; i++) {
-    const para = paragraphs[i].trim();
-    if (!para) continue;
-
-    // 跳过代码块和特殊格式
-    if (para.startsWith('```') || para.startsWith('---') || para.startsWith('|')) {
-      translatedContent += para + '\n\n';
-      continue;
+function emitAgentTranslationTask(result, url, sourcePath, outputPath) {
+  console.log('\n=== AGENT_TASK: TRANSLATE_WITH_AGENT ===');
+  console.log(JSON.stringify({
+    task: 'translate_with_agent',
+    mode: 'bilingual_markdown',
+    title: result.title || 'Untitled',
+    source_language: result.language || 'unknown',
+    target_language: config.translation.targetLanguage || 'zh-CN',
+    source_path: sourcePath,
+    output_path: outputPath,
+    instructions: [
+      'Use the current agent model, not an external API.',
+      'Read source_path and create output_path.',
+      'Keep every English transcript paragraph in place.',
+      'Insert the Chinese translation directly below the corresponding English paragraph.',
+      'Use the marker: > **中文翻译**：',
+      'Preserve timestamps, headings, metadata, and Markdown structure.'
+    ],
+    metadata: {
+      url,
+      wordCount: result.wordCount,
+      author: result.author,
+      published: result.published
     }
-
-    // 分批翻译（避免超过API限制）
-    if (para.length > maxChunkSize) {
-      // 超长段落，按句子分割
-      const sentences = para.split(/(?<=[.!?])\s+/);
-      let batch = '';
-      
-      for (const sentence of sentences) {
-        if (batch.length + sentence.length > maxChunkSize && batch) {
-          const translation = await translateToChineseWithClaude(batch);
-          if (translation) {
-            translatedContent += `${batch}\n\n> **中文翻译**：\n> ${translation}\n\n`;
-          } else {
-            translatedContent += batch + '\n\n';
-          }
-          batch = sentence;
-          processedCount++;
-        } else {
-          batch += (batch ? ' ' : '') + sentence;
-        }
-      }
-      
-      if (batch) {
-        const translation = await translateToChineseWithClaude(batch);
-        if (translation) {
-          translatedContent += `${batch}\n\n> **中文翻译**：\n> ${translation}\n\n`;
-        } else {
-          translatedContent += batch + '\n\n';
-        }
-        processedCount++;
-      }
-      
-    } else {
-      // 正常段落，直接翻译
-      const translation = await translateToChineseWithClaude(para);
-      if (translation) {
-        translatedContent += `${para}\n\n> **中文翻译**：\n> ${translation}\n\n`;
-      } else {
-        translatedContent += para + '\n\n';
-      }
-      processedCount++;
-    }
-
-    // 进度提示
-    if ((i + 1) % 10 === 0 || i === paragraphs.length - 1) {
-      console.log(`  📝 已翻译: ${processedCount}/${paragraphs.length} 段落`);
-    }
-  }
-
-  console.log('✅ 翻译完成！\n');
-  return translatedContent.trim();
+  }, null, 2));
+  console.log('=== END_AGENT_TASK ===\n');
+  console.log('💡 提示: Agent将使用当前会话模型生成中英对照稿，不调用外部翻译API。');
 }
 
 // ============ 飞书工具函数 ============
@@ -368,9 +310,10 @@ async function extract() {
       return;
     }
 
-    // 5. 翻译内容（如果启用）
-    if (options.translate && result.content && result.language) {
-      result.translatedContent = await translateContent(result.content, result.language, true);
+    // 5. 翻译由当前Agent处理。脚本只提取并输出交接任务，不调用外部模型API。
+    const agentTranslationRequested = options.translate && result.content && result.language && shouldTranslateWithAgent(result.language);
+    if (options.translate && !agentTranslationRequested) {
+      console.log(`ℹ️  语言为 ${result.language || 'N/A'}，跳过翻译交接`);
     }
 
     // 6. 生成Markdown
@@ -378,13 +321,16 @@ async function extract() {
 
     // 7. 保存文件
     const outputPath = options.output || generateOutputPath(result);
-    mkdirSync(dirname(outputPath), { recursive: true });
-    writeFileSync(outputPath, markdown, 'utf-8');
-    console.log(`\n💾 已保存: ${outputPath}`);
+    const sourcePath = agentTranslationRequested && outputPath.endsWith('.md')
+      ? outputPath.replace(/\.md$/, '.source.md')
+      : outputPath;
+    mkdirSync(dirname(sourcePath), { recursive: true });
+    writeFileSync(sourcePath, markdown, 'utf-8');
+    console.log(`\n💾 已保存: ${sourcePath}`);
 
     // 7. 保存JSON
     if (config.output.saveJson) {
-      const jsonPath = outputPath.replace(/\.md$/, '.json');
+      const jsonPath = sourcePath.replace(/\.md$/, '.json');
       writeFileSync(jsonPath, JSON.stringify(result, null, 2), 'utf-8');
       console.log(`📦 JSON: ${jsonPath}`);
     }
@@ -394,12 +340,17 @@ async function extract() {
 
     // 8. 飞书保存
     if (options.feishu) {
-      await saveToFeishu(result, url, outputPath);
+      await saveToFeishu(result, url, sourcePath);
+    }
+
+    // 8.5 Agent翻译交接
+    if (agentTranslationRequested) {
+      emitAgentTranslationTask(result, url, sourcePath, outputPath);
     }
 
     // 9. 自动打开
     if (options.autoOpen) {
-      execFile('open', [outputPath]);
+      execFile('open', [sourcePath]);
       console.log('📂 已打开文件');
     }
 

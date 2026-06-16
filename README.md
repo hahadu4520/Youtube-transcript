@@ -34,13 +34,16 @@ node extract.mjs "https://youtube.com/watch?v=..."
 # 网络受限时启用代理
 node extract.mjs "https://youtube.com/watch?v=..." --proxy
 
+# 临时指定代理
+node extract.mjs "https://youtube.com/watch?v=..." --proxy-url http://127.0.0.1:7890
+
 # 输出到指定文件
 node extract.mjs "https://youtube.com/watch?v=..." --output ~/Documents/transcript.md
 
 # 输出 JSON
 node extract.mjs "https://youtube.com/watch?v=..." --json-only
 
-# 英文内容翻译成中文
+# 英文内容翻译成中文（由当前 Agent 内置模型完成）
 node extract.mjs "https://youtube.com/watch?v=..." --translate
 
 # 次要能力：提取普通网页正文
@@ -61,10 +64,10 @@ node extract.mjs "https://example.com/article"
 ## 配置
 
 编辑 `config.json`:
-- `proxy`: 代理设置
+- `proxy`: 代理设置。默认自动读取 `HTTPS_PROXY` / `HTTP_PROXY` 环境变量；也可用 `--proxy-url` 临时指定
 - `defuddle`: Defuddle选项
 - `output`: 输出配置
-- `translation`: 翻译配置
+- `translation`: 翻译配置。默认由当前 Agent 内置模型完成，脚本只输出翻译交接任务，不调用外部模型 API
 - `feishu`: Feishu/Lark 分块配置
 
 ## 文档

@@ -1,9 +1,10 @@
 {
   "proxy": {
-    "http": "http://127.0.0.1:7890",
-    "https": "http://127.0.0.1:7890",
+    "http": null,
+    "https": null,
     "enabled": false,
-    "comment": "Set enabled:true to enable proxy globally, or pass --proxy per run"
+    "autoDetectEnv": true,
+    "comment": "Proxy order: --proxy-url, HTTPS_PROXY/HTTP_PROXY env vars, then this config. Set enabled:true to force proxy globally, or pass --proxy per run."
   },
   "defuddle": {
     "useAsync": true,
@@ -37,13 +38,10 @@
   },
   "translation": {
     "enabled": false,
+    "provider": "agent",
     "autoDetect": true,
     "sourceLanguages": ["en", "eng"],
     "targetLanguage": "zh-CN",
-    "apiProvider": "claude",
-    "model": "claude-sonnet-4",
-    "apiKey": null,
-    "maxChunkSize": 3000,
-    "comment": "Auto-translate English content to Chinese. Set enabled:true or use --translate flag."
+    "comment": "Translation is handled by the current agent model. The script emits AGENT_TASK: TRANSLATE_WITH_AGENT and does not call external model APIs."
   }
 }

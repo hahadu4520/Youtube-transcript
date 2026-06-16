@@ -62,11 +62,19 @@ Use proxy when direct YouTube fetch fails or the user asks for proxy:
 node /Users/duu/.openclaw/skills/defuddle/extract.mjs "https://youtube.com/watch?v=..." --proxy --output /absolute/path/transcript.md
 ```
 
+Use a one-off proxy when the user provides a specific proxy address:
+
+```bash
+node /Users/duu/.openclaw/skills/defuddle/extract.mjs "https://youtube.com/watch?v=..." --proxy-url http://127.0.0.1:7890 --output /absolute/path/transcript.md
+```
+
 Extract and translate an English YouTube transcript to Chinese:
 
 ```bash
 node /Users/duu/.openclaw/skills/defuddle/extract.mjs "https://youtube.com/watch?v=..." --translate --output /absolute/path/bilingual.md
 ```
+
+With `--translate`, the script does not call an external model API. It saves `/absolute/path/bilingual.source.md` and emits `AGENT_TASK: TRANSLATE_WITH_AGENT`; the current agent must read the source file and create `/absolute/path/bilingual.md` with Chinese inserted below each English paragraph.
 
 Output JSON only:
 
@@ -80,16 +88,17 @@ Secondary capability: extract a clean webpage/article:
 node /Users/duu/.openclaw/skills/defuddle/extract.mjs "https://example.com/article" --output /absolute/path/article.md
 ```
 
-Translation requires `ANTHROPIC_API_KEY` or `translation.apiKey` in `config.json`.
+Translation requires an active agent session. The Node script cannot directly call the current agent model; it emits a handoff task for the agent to complete.
 
 ## CLI Options
 
 - `--proxy`: use the proxy configured in `config.json`.
+- `--proxy-url <url>`: use a specific HTTP/HTTPS proxy for this run.
 - `--no-async`: disable async extractors. Avoid this for YouTube transcripts.
 - `--output <path>`: write Markdown to a specific path.
 - `--json-only`: print the Defuddle JSON result.
 - `--no-markdown`: disable Markdown conversion.
-- `--translate`: translate English extracted content to Chinese.
+- `--translate`: request current-agent translation. The script emits `AGENT_TASK: TRANSLATE_WITH_AGENT` instead of calling external APIs.
 - `--feishu`: emit a structured Feishu save task to stdout.
 - `--feishu-folder <token>`: set the target Feishu folder token for the emitted task.
 - `--open`: open the result file after extraction.
@@ -158,20 +167,23 @@ Read or edit:
 
 Important fields:
 
-- `proxy.http`: default proxy is usually `http://127.0.0.1:7890`.
-- `proxy.enabled`: global proxy toggle. Prefer per-run `--proxy` unless the user wants proxy always on.
+- `proxy.autoDetectEnv`: when true, automatically uses `HTTPS_PROXY` or `HTTP_PROXY` from the current environment.
+- `proxy.http` / `proxy.https`: optional fallback proxy URLs. Leave them null for public/shared installs.
+- `proxy.enabled`: global proxy toggle. Prefer environment variables, `--proxy-url`, or per-run `--proxy` unless the user wants proxy always on.
 - `defuddle.useAsync`: must stay `true` for YouTube transcript extraction.
 - `output.defaultPath`: default archive folder.
 - `output.saveJson`: also writes raw JSON next to Markdown.
 - `feishu.chunkSize`: chunk size for document handoff.
-- `translation`: Claude API translation settings.
+- `translation.provider`: defaults to `agent`; translation is completed by the current agent model.
 
 ## Troubleshooting
 
 - `fetch failed` or timeout: retry with `--proxy`; if it still fails, the local proxy may not be running.
+- Wrong proxy port: check `HTTP_PROXY` / `HTTPS_PROXY`, or pass `--proxy-url http://host:port`.
+- SOCKS proxy: this script currently expects HTTP/HTTPS proxy URLs for `undici` ProxyAgent. Use the HTTP/Mixed proxy port from the user's proxy app.
 - YouTube has metadata but no transcript: ensure `defuddle.useAsync` is `true` and do not pass `--no-async`.
 - `Module not found`: run `npm install` in `/Users/duu/.openclaw/skills/defuddle`.
-- Translation skipped: configure `ANTHROPIC_API_KEY` or `translation.apiKey`.
+- Translation output missing: ensure the agent consumed the `AGENT_TASK: TRANSLATE_WITH_AGENT` payload and wrote `output_path`.
 - Feishu/Lark upload fails: save the local Markdown first, then upload chunks manually with the available document tools.
 
 ## References
